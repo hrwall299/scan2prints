@@ -103,7 +103,7 @@ function Home() {
             {["1-Full", "2-Top / Bottom", "2-Left / Right", "4-Grid"].map((l, i) => (
               <div key={l} className="paper-sheet flex aspect-[1/1.414] flex-col gap-1.5 rounded-lg p-2">
                 <div className={i === 2 ? "grid flex-1 grid-cols-2 gap-1.5" : i === 3 ? "grid flex-1 grid-cols-2 grid-rows-2 gap-1.5" : "grid flex-1 gap-1.5"}>
-                  {Array.from({ length: [1, 2, 2, 4][i] }).map((_, k) => (
+                  {Array.from({ length: [1, 2, 2, 4][i] ?? 1 }).map((_, k) => (
                     <div key={k} className="rounded bg-primary-soft" />
                   ))}
                 </div>
