@@ -14,16 +14,246 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      order_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          kind: string
+          mime_type: string
+          order_id: string
+          page_count: number
+          size_bytes: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          kind?: string
+          mime_type: string
+          order_id: string
+          page_count?: number
+          size_bytes: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          kind?: string
+          mime_type?: string
+          order_id?: string
+          page_count?: number
+          size_bytes?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_files_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          approved_at: string | null
+          color_mode: string
+          completed_at: string | null
+          copies: number
+          created_at: string
+          customer_name: string
+          customer_phone: string
+          estimated_price: number
+          files_deleted_at: string | null
+          id: string
+          layout: string
+          mode: string
+          notes: string
+          order_number: number
+          page_count: number
+          page_size: string
+          paper_type: string
+          queue_position: number | null
+          reject_reason: string
+          rejected_at: string | null
+          sides: string
+          status: string
+          tracking_token: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          color_mode: string
+          completed_at?: string | null
+          copies: number
+          created_at?: string
+          customer_name: string
+          customer_phone?: string
+          estimated_price?: number
+          files_deleted_at?: string | null
+          id?: string
+          layout?: string
+          mode: string
+          notes?: string
+          order_number?: number
+          page_count?: number
+          page_size?: string
+          paper_type?: string
+          queue_position?: number | null
+          reject_reason?: string
+          rejected_at?: string | null
+          sides?: string
+          status?: string
+          tracking_token: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          color_mode?: string
+          completed_at?: string | null
+          copies?: number
+          created_at?: string
+          customer_name?: string
+          customer_phone?: string
+          estimated_price?: number
+          files_deleted_at?: string | null
+          id?: string
+          layout?: string
+          mode?: string
+          notes?: string
+          order_number?: number
+          page_count?: number
+          page_size?: string
+          paper_type?: string
+          queue_position?: number | null
+          reject_reason?: string
+          rejected_at?: string | null
+          sides?: string
+          status?: string
+          tracking_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      printers: {
+        Row: {
+          connection: string
+          default_paper: string
+          duplex: boolean
+          id: string
+          kind: string
+          model: string
+          name: string
+          quality: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          connection?: string
+          default_paper?: string
+          duplex?: boolean
+          id?: string
+          kind: string
+          model?: string
+          name: string
+          quality?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          connection?: string
+          default_paper?: string
+          duplex?: boolean
+          id?: string
+          kind?: string
+          model?: string
+          name?: string
+          quality?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shop_settings: {
+        Row: {
+          a3_multiplier: number
+          bw_price: number
+          cleanup_hours: number
+          color_price: number
+          currency: string
+          duplex_discount: number
+          glossy_surcharge: number
+          id: number
+          max_file_mb: number
+          shop_name: string
+          updated_at: string
+        }
+        Insert: {
+          a3_multiplier?: number
+          bw_price?: number
+          cleanup_hours?: number
+          color_price?: number
+          currency?: string
+          duplex_discount?: number
+          glossy_surcharge?: number
+          id?: number
+          max_file_mb?: number
+          shop_name?: string
+          updated_at?: string
+        }
+        Update: {
+          a3_multiplier?: number
+          bw_price?: number
+          cleanup_hours?: number
+          color_price?: number
+          currency?: string
+          duplex_discount?: number
+          glossy_surcharge?: number
+          id?: number
+          max_file_mb?: number
+          shop_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_exists: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +380,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
