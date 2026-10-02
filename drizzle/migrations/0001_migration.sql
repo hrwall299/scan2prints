@@ -1,0 +1,2 @@
+create policy "Admins read print files" on storage.objects for select to authenticated using (bucket_id = 'print-files' and public.has_role(auth.uid(),'admin'));
+create policy "Admins delete print files" on storage.objects for delete to authenticated using (bucket_id = 'print-files' and public.has_role(auth.uid(),'admin'));
