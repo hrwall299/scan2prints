@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as TrackRouteImport } from './routes/track'
+import { Route as UploadIndexRouteImport } from './routes/upload.index'
+import { Route as UploadImageRouteImport } from './routes/upload.image'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadIndexRoute = UploadIndexRouteImport.update({
+  id: '/upload/',
+  path: '/upload/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadImageRoute = UploadImageRouteImport.update({
+  id: '/upload/image',
+  path: '/upload/image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/track': typeof TrackRoute
+  '/upload/image': typeof UploadImageRoute
+  '/upload/': typeof UploadIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/track': typeof TrackRoute
+  '/upload/image': typeof UploadImageRoute
+  '/upload': typeof UploadIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/track': typeof TrackRoute
+  '/upload/image': typeof UploadImageRoute
+  '/upload/': typeof UploadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/admin' | '/track' | '/upload/image' | '/upload/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/admin' | '/track' | '/upload/image' | '/upload'
+  id: '__root__' | '/' | '/admin' | '/track' | '/upload/image' | '/upload/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  TrackRoute: typeof TrackRoute
+  UploadImageRoute: typeof UploadImageRoute
+  UploadIndexRoute: typeof UploadIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upload/': {
+      id: '/upload/'
+      path: '/upload'
+      fullPath: '/upload/'
+      preLoaderRoute: typeof UploadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upload/image': {
+      id: '/upload/image'
+      path: '/upload/image'
+      fullPath: '/upload/image'
+      preLoaderRoute: typeof UploadImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  TrackRoute: TrackRoute,
+  UploadImageRoute: UploadImageRoute,
+  UploadIndexRoute: UploadIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
