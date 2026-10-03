@@ -102,7 +102,7 @@ export function OptionsPanel({ o, set, hideSize }: { o: Options; set: (p: Partia
   );
 }
 
-export function PriceSummary({ settings, o, pages, submitting, progress, onSubmit, disabled }: { settings?: PricingSettings; o: Options; pages: number; submitting: boolean; progress: number; onSubmit: () => void; disabled?: boolean }) {
+export function PriceSummary({ settings, o, pages, submitting, progress, onSubmit, disabled }: { settings?: PricingSettings | undefined; o: Options; pages: number; submitting: boolean; progress: number; onSubmit: () => void; disabled?: boolean }) {
   const total = settings ? calcPrice(settings, { ...o, pages }) : 0;
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
@@ -131,7 +131,7 @@ export async function placeOrder(args: { mode: "document" | "image"; files: { fi
   const done = new Array(uploads.length).fill(0);
   await Promise.all(
     uploads.map((u, i) =>
-      uploadWithProgress(u.signedUrl, args.files[i].file, (p) => {
+      uploadWithProgress(u.signedUrl, args.files[i]!.file, (p) => {
         done[i] = p;
         args.onProgress(Math.round(done.reduce((a, b) => a + b, 0) / uploads.length));
       }),
@@ -150,7 +150,7 @@ export async function placeOrder(args: { mode: "document" | "image"; files: { fi
       paper_type: args.o.paper_type,
       sides: args.o.sides,
       layout: args.layout,
-      files: args.files.map((f, i) => ({ path: uploads[i].path, name: f.file.name, mime: mimeFor(f.file.name), size: f.file.size, pages: f.pages })),
+      files: args.files.map((f, i) => ({ path: uploads[i]!.path, name: f.file.name, mime: mimeFor(f.file.name), size: f.file.size, pages: f.pages })),
     },
   });
 }

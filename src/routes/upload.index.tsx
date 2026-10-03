@@ -44,8 +44,8 @@ function UploadPage() {
   const pages = items.reduce((a, i) => a + i.pages, 0);
 
   async function submit() {
-    if (!items.length) return toast.error("Add at least one file");
-    if (!o.customer_name.trim()) return toast.error("Please enter your name");
+    if (!items.length) { toast.error("Add at least one file"); return; }
+    if (!o.customer_name.trim()) { toast.error("Please enter your name"); return; }
     setBusy(true);
     try {
       const r = await placeOrder({ mode: "document", files: items, o, layout: "standard", onProgress: setProgress });
