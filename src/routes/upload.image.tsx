@@ -53,8 +53,8 @@ function PhotoPage() {
   }
 
   async function submit() {
-    if (!photos.length) return toast.error("Add at least one photo");
-    if (!o.customer_name.trim()) return toast.error("Please enter your name");
+    if (!photos.length) { toast.error("Add at least one photo"); return; }
+    if (!o.customer_name.trim()) { toast.error("Please enter your name"); return; }
     setBusy(true);
     try {
       // Spread sheet count across files so the total matches the preview.
