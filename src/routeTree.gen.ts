@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as TrackRouteImport } from './routes/track'
 import { Route as UploadIndexRouteImport } from './routes/upload.index'
 import { Route as UploadImageRouteImport } from './routes/upload.image'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrackRoute = TrackRouteImport.update({
@@ -44,6 +50,7 @@ const UploadImageRoute = UploadImageRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/track': typeof TrackRoute
   '/upload/image': typeof UploadImageRoute
   '/upload/': typeof UploadIndexRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/track': typeof TrackRoute
   '/upload/image': typeof UploadImageRoute
   '/upload': typeof UploadIndexRoute
@@ -59,21 +67,30 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/track': typeof TrackRoute
   '/upload/image': typeof UploadImageRoute
   '/upload/': typeof UploadIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/track' | '/upload/image' | '/upload/'
+  fullPaths: '/' | '/admin' | '/auth' | '/track' | '/upload/image' | '/upload/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/track' | '/upload/image' | '/upload'
-  id: '__root__' | '/' | '/admin' | '/track' | '/upload/image' | '/upload/'
+  to: '/' | '/admin' | '/auth' | '/track' | '/upload/image' | '/upload'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/track'
+    | '/upload/image'
+    | '/upload/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   TrackRoute: typeof TrackRoute
   UploadImageRoute: typeof UploadImageRoute
   UploadIndexRoute: typeof UploadIndexRoute
@@ -93,6 +110,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/track': {
@@ -122,6 +146,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   TrackRoute: TrackRoute,
   UploadImageRoute: UploadImageRoute,
   UploadIndexRoute: UploadIndexRoute,
