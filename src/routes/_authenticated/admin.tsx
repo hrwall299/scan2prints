@@ -349,8 +349,8 @@ function SettingsForm({ s }: { s: Settings }) {
     <div><Label className="mb-1 block text-sm">{label}</Label><Input type="number" min={0} step={step} value={f[k] as number} onChange={(e) => setF({ ...f, [k]: Number(e.target.value) })} /></div>
   );
   async function save() {
-    if ([f.bw_price, f.color_price, f.a3_multiplier, f.glossy_surcharge, f.max_file_mb, f.cleanup_hours].some((n) => !(Number(n) >= 0))) return toast.error("Values must be zero or more");
-    if (f.duplex_discount > 100) return toast.error("Discount can't exceed 100%");
+    if ([f.bw_price, f.color_price, f.a3_multiplier, f.glossy_surcharge, f.max_file_mb, f.cleanup_hours].some((n) => !(Number(n) >= 0))) { toast.error("Values must be zero or more"); return; }
+    if (f.duplex_discount > 100) { toast.error("Discount cannot exceed 100%"); return; }
     const { id: _i, updated_at: _u, ...rest } = f;
     const { error } = await supabase.from("shop_settings").update({ ...rest, shop_name: rest.shop_name.trim().slice(0, 80) || "PRINTORA", updated_at: new Date().toISOString() }).eq("id", 1);
     if (error) { toast.error(error.message); return; }
