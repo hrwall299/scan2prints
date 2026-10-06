@@ -353,7 +353,8 @@ function SettingsForm({ s }: { s: Settings }) {
     if (f.duplex_discount > 100) return toast.error("Discount can't exceed 100%");
     const { id: _i, updated_at: _u, ...rest } = f;
     const { error } = await supabase.from("shop_settings").update({ ...rest, shop_name: rest.shop_name.trim().slice(0, 80) || "PRINTORA", updated_at: new Date().toISOString() }).eq("id", 1);
-    if (error) toast.error(error.message); else { toast.success("Settings saved"); qc.invalidateQueries({ queryKey: ["admin-settings"] }); }
+    if (error) { toast.error(error.message); return; }
+    toast.success("Settings saved"); qc.invalidateQueries({ queryKey: ["admin-settings"] });
   }
   return (
     <div className="max-w-2xl">
@@ -389,11 +390,11 @@ function Usage({ orders, s }: { orders: Order[]; s: Settings }) {
     const color = m.filter((o) => o.color_mode === "color").reduce((a, o) => a + sheets(o), 0);
     const revenue = m.reduce((a, o) => a + Number(o.estimated_price), 0);
     const [y, mo] = month.split("-").map(Number);
-    const days = new Date(y, mo, 0).getDate();
+    const days = new Date(y ?? 2026, mo ?? 1, 0).getDate();
     const daily = Array.from({ length: days }, (_, i) => ({ day: i + 1, bw: 0, color: 0 }));
     for (const o of m) {
       const d = new Date(o.completed_at ?? o.created_at).getDate();
-      daily[d - 1][o.color_mode === "color" ? "color" : "bw"] += sheets(o);
+      daily[d - 1]![o.color_mode === "color" ? "color" : "bw"] += sheets(o);
     }
     return { count: m.length, bw, color, revenue, daily };
   }, [orders, month]);
