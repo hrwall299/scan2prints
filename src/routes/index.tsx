@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  ArrowRight, CheckCircle2, ClipboardList, FileText, ImageIcon, LayoutGrid, Mail, MapPin, Phone,
+  ArrowRight, CheckCircle2, ClipboardList, FileText, ImageIcon, LayoutGrid,
   Printer, QrCode, ScanLine, ShieldCheck, SlidersHorizontal, Trash2, Upload, BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Customers scan your shop QR, upload documents or photos, choose print settings and track orders. You approve and print from one dashboard." },
       { property: "og:title", content: "PRINTORA — QR self-service printing for print shops" },
       { property: "og:description", content: "Scan, upload, configure and track print orders. Built for Xerox centres and cyber cafes." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
@@ -142,16 +144,14 @@ function Home() {
       </section>
 
       <section id="contact" className="mx-auto max-w-6xl px-4 py-20">
-        <div className="card-soft grid gap-8 p-8 md:grid-cols-2 md:p-12">
+        <div className="grid items-center gap-8 md:grid-cols-2">
           <div>
             <p className="text-sm font-bold uppercase tracking-widest text-accent">Contact</p>
-            <h2 className="mt-3 text-3xl font-bold">Visit the counter or reach us.</h2>
-            <p className="mt-3 text-muted-foreground">Questions about an order? Have your order number ready.</p>
+            <h2 className="mt-3 text-3xl font-bold">Visit the shop counter.</h2>
+            <p className="mt-3 text-muted-foreground">Questions about an order? Show your order number at the counter.</p>
           </div>
-          <div className="space-y-4">
-            <p className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" /> +91 98765 43210</p>
-            <p className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary" /> hello@printora.shop</p>
-            <p className="flex items-center gap-3"><MapPin className="h-5 w-5 text-primary" /> Main Road, Near Bus Stand</p>
+          <div>
+            <Button asChild variant="outline" size="lg"><Link to="/track"><ScanLine className="h-5 w-5" />Track your order</Link></Button>
           </div>
         </div>
       </section>
