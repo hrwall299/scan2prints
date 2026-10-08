@@ -14,7 +14,7 @@ export const Route = createFileRoute("/upload/")({
   component: UploadPage,
 });
 
-type Item = { file: File; pages: number; counting: boolean; edits?: PageEdit[]; editing?: boolean };
+type Item = { file: File; pages: number; counting: boolean; edits?: PageEdit[] | undefined; editing?: boolean };
 
 function UploadPage() {
   const { data: settings } = useShopSettings();
