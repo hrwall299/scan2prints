@@ -14,8 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      order_events: {
+        Row: {
+          created_at: string
+          id: string
+          note: string
+          order_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string
+          order_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_files: {
         Row: {
+          color_page_list: string
+          color_pages: number
           created_at: string
           file_name: string
           id: string
@@ -27,6 +61,8 @@ export type Database = {
           storage_path: string
         }
         Insert: {
+          color_page_list?: string
+          color_pages?: number
           created_at?: string
           file_name: string
           id?: string
@@ -38,6 +74,8 @@ export type Database = {
           storage_path: string
         }
         Update: {
+          color_page_list?: string
+          color_pages?: number
           created_at?: string
           file_name?: string
           id?: string
@@ -62,6 +100,7 @@ export type Database = {
         Row: {
           approved_at: string | null
           color_mode: string
+          color_pages: number
           completed_at: string | null
           copies: number
           created_at: string
@@ -88,6 +127,7 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           color_mode: string
+          color_pages?: number
           completed_at?: string | null
           copies: number
           created_at?: string
@@ -114,6 +154,7 @@ export type Database = {
         Update: {
           approved_at?: string | null
           color_mode?: string
+          color_pages?: number
           completed_at?: string | null
           copies?: number
           created_at?: string

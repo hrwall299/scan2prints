@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, RotateCw } from "lucide-react";
 
-export type PageEdit = { src: number; rotate: number; keep: boolean };
+/** color: undefined = follow the order's main colour choice. */
+export type PageEdit = { src: number; rotate: number; keep: boolean; color?: "bw" | "color" | undefined };
 
 export function initialPages(n: number): PageEdit[] {
   return Array.from({ length: n }, (_, i) => ({ src: i, rotate: 0, keep: true }));
+}
+
+/** Sheet numbers (1-based, in final order) printed in colour. */
+export function colourSheets(pages: PageEdit[], fallback: "bw" | "color"): number[] {
+  return pages.filter((p) => p.keep).flatMap((p, i) => ((p.color ?? fallback) === "color" ? [i + 1] : []));
 }
 
 /** Builds the final PDF reflecting the page edits (order, rotation, removed pages). */
