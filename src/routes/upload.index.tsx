@@ -4,6 +4,8 @@ import { FileText, Image as ImageIcon, Trash2, UploadCloud } from "lucide-react"
 import { toast } from "sonner";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { applyPageEdits, initialPages, PdfPageEditor, type PageEdit } from "@/components/PdfPageEditor";
 import { defaultOptions, OptionsPanel, placeOrder, PriceSummary, useShopSettings, type Options } from "@/components/OrderOptions";
 import { countPdfPages, DOC_EXTS, ext, formatSize, typeLabel, validateFile } from "@/lib/file-utils";
 
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/upload/")({
   component: UploadPage,
 });
 
-type Item = { file: File; pages: number; counting: boolean };
+type Item = { file: File; pages: number; counting: boolean; edits?: PageEdit[] | undefined; editing?: boolean };
 
 function UploadPage() {
   const { data: settings } = useShopSettings();
@@ -37,7 +39,7 @@ function UploadPage() {
     for (const it of fresh) {
       if (!it.counting) continue;
       const n = await countPdfPages(it.file);
-      setItems((p) => p.map((x) => (x.file === it.file ? { ...x, pages: n ?? 1, counting: false } : x)));
+      setItems((p) => p.map((x) => (x.file === it.file ? { ...x, pages: n ?? 1, counting: false, edits: n ? initialPages(n) : undefined } : x)));
     }
   }
 
@@ -48,7 +50,11 @@ function UploadPage() {
     if (!o.customer_name.trim()) { toast.error("Please enter your name"); return; }
     setBusy(true);
     try {
-      const r = await placeOrder({ mode: "document", files: items, o, layout: "standard", onProgress: setProgress });
+      const files = await Promise.all(items.map(async (it) => {
+        const changed = it.edits && it.edits.some((p, i) => !p.keep || p.rotate || p.src !== i);
+        return changed ? { file: await applyPageEdits(it.file, it.edits!), pages: it.pages } : { file: it.file, pages: it.pages };
+      }));
+      const r = await placeOrder({ mode: "document", files, o, layout: "standard", onProgress: setProgress });
       navigate({ to: "/track", search: { n: r.orderNumber, t: r.token } });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not send order");
@@ -88,20 +94,31 @@ function UploadPage() {
             {items.length > 0 && (
               <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
                 {items.map((it, idx) => (
-                  <li key={idx} className="flex items-center gap-3 p-4">
+                  <li key={idx}>
+                  <div className="flex flex-wrap items-center gap-3 p-4">
                     <FileText className="h-8 w-8 shrink-0 text-primary" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{it.file.name}</p>
                       <p className="text-xs text-muted-foreground">{typeLabel(it.file.name)} · {formatSize(it.file.size)}</p>
                     </div>
+                    {it.edits && (
+                      <label className="flex items-center gap-2 text-sm">
+                        Edit pages
+                        <Switch checked={!!it.editing} onCheckedChange={(v) => setItems((p) => p.map((x, i) => (i === idx ? { ...x, editing: v } : x)))} />
+                      </label>
+                    )}
                     <label className="flex items-center gap-2 text-sm">
                       Pages
-                      <Input type="number" min={1} max={2000} className="w-20" disabled={it.counting} value={it.counting ? "" : it.pages}
+                      <Input type="number" min={1} max={2000} className="w-20" disabled={it.counting || !!it.edits} value={it.counting ? "" : it.pages}
                         onChange={(e) => { const v = Math.max(1, Number(e.target.value) || 1); setItems((p) => p.map((x, i) => (i === idx ? { ...x, pages: v } : x))); }} />
                     </label>
                     <button aria-label="Remove file" onClick={() => setItems((p) => p.filter((_, i) => i !== idx))} className="text-muted-foreground hover:text-destructive">
                       <Trash2 className="h-4 w-4" />
                     </button>
+                  </div>
+                  {it.edits && it.editing && (
+                    <PdfPageEditor file={it.file} pages={it.edits} onChange={(e) => setItems((p) => p.map((x, i) => (i === idx ? { ...x, edits: e, pages: Math.max(1, e.filter((q) => q.keep).length) } : x)))} />
+                  )}
                   </li>
                 ))}
               </ul>
