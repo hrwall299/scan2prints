@@ -35,10 +35,17 @@ export function perPagePrice(s: PricingSettings, o: Pick<PrintOptions, "color_mo
   return base * mult + surcharge;
 }
 
-export function calcPrice(s: PricingSettings, o: PrintOptions) {
+/** If color_pages is given, those pages are charged at colour price and the rest at B&W. */
+export function calcPrice(s: PricingSettings, o: PrintOptions & { color_pages?: number | undefined }) {
   const pages = Math.max(0, Math.floor(o.pages));
   const copies = Math.max(1, Math.floor(o.copies));
-  let total = perPagePrice(s, o) * pages * copies;
+  let perCopy: number;
+  if (o.color_pages === undefined) perCopy = perPagePrice(s, o) * pages;
+  else {
+    const c = Math.min(pages, Math.max(0, Math.floor(o.color_pages)));
+    perCopy = perPagePrice(s, { ...o, color_mode: "color" }) * c + perPagePrice(s, { ...o, color_mode: "bw" }) * (pages - c);
+  }
+  let total = perCopy * copies;
   if (o.sides === "double") total *= 1 - Number(s.duplex_discount) / 100;
   return Math.round(total * 100) / 100;
 }
