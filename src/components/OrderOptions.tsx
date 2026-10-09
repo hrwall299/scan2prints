@@ -102,15 +102,15 @@ export function OptionsPanel({ o, set, hideSize }: { o: Options; set: (p: Partia
   );
 }
 
-export function PriceSummary({ settings, o, pages, submitting, progress, onSubmit, disabled }: { settings?: PricingSettings | undefined; o: Options; pages: number; submitting: boolean; progress: number; onSubmit: () => void; disabled?: boolean }) {
-  const total = settings ? calcPrice(settings, { ...o, pages }) : 0;
+export function PriceSummary({ settings, o, pages, submitting, progress, onSubmit, disabled, colorPages }: { settings?: PricingSettings | undefined; o: Options; pages: number; colorPages?: number | undefined; submitting: boolean; progress: number; onSubmit: () => void; disabled?: boolean }) {
+  const total = settings ? calcPrice(settings, { ...o, pages, color_pages: colorPages }) : 0;
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
       <h3 className="font-display text-lg font-semibold">Order summary</h3>
       <dl className="mt-3 space-y-1 text-sm">
         <div className="flex justify-between"><dt className="text-muted-foreground">Pages</dt><dd>{pages}</dd></div>
         <div className="flex justify-between"><dt className="text-muted-foreground">Copies</dt><dd>{o.copies}</dd></div>
-        <div className="flex justify-between"><dt className="text-muted-foreground">Colour</dt><dd>{o.color_mode === "bw" ? "B&W" : "Colour"}</dd></div>
+        <div className="flex justify-between"><dt className="text-muted-foreground">Colour</dt><dd>{colorPages === undefined ? (o.color_mode === "bw" ? "B&W" : "Colour") : `${colorPages} colour · ${pages - colorPages} B&W`}</dd></div>
       </dl>
       <div className="mt-4 flex items-baseline justify-between border-t border-border pt-4">
         <span className="text-sm text-muted-foreground">Estimated price</span>
@@ -126,7 +126,7 @@ export function PriceSummary({ settings, o, pages, submitting, progress, onSubmi
 }
 
 /** Uploads files and creates the order. Returns tracking info. */
-export async function placeOrder(args: { mode: "document" | "image"; files: { file: File; pages: number }[]; o: Options; layout: string; onProgress: (p: number) => void }) {
+export async function placeOrder(args: { mode: "document" | "image"; files: { file: File; pages: number; colorList?: number[] | undefined }[]; o: Options; layout: string; onProgress: (p: number) => void }) {
   const { batch, uploads } = await prepareUpload({ data: { files: args.files.map((f) => ({ name: f.file.name, size: f.file.size })) } });
   const done = new Array(uploads.length).fill(0);
   await Promise.all(
@@ -150,7 +150,7 @@ export async function placeOrder(args: { mode: "document" | "image"; files: { fi
       paper_type: args.o.paper_type,
       sides: args.o.sides,
       layout: args.layout,
-      files: args.files.map((f, i) => ({ path: uploads[i]!.path, name: f.file.name, mime: mimeFor(f.file.name), size: f.file.size, pages: f.pages })),
+      files: args.files.map((f, i) => ({ path: uploads[i]!.path, name: f.file.name, mime: mimeFor(f.file.name), size: f.file.size, pages: f.pages, color_list: f.colorList })),
     },
   });
 }

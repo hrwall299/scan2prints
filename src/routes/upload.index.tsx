@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { applyPageEdits, initialPages, PdfPageEditor, type PageEdit } from "@/components/PdfPageEditor";
+import { applyPageEdits, colourSheets, initialPages, PdfPageEditor, type PageEdit } from "@/components/PdfPageEditor";
 import { defaultOptions, OptionsPanel, placeOrder, PriceSummary, useShopSettings, type Options } from "@/components/OrderOptions";
 import { countPdfPages, DOC_EXTS, ext, formatSize, typeLabel, validateFile } from "@/lib/file-utils";
 
@@ -44,6 +44,8 @@ function UploadPage() {
   }
 
   const pages = items.reduce((a, i) => a + i.pages, 0);
+  const colourList = (it: Item) => (it.edits ? colourSheets(it.edits, o.color_mode) : undefined);
+  const colorPages = items.reduce((a, it) => a + (colourList(it)?.length ?? (o.color_mode === "color" ? it.pages : 0)), 0);
 
   async function submit() {
     if (!items.length) { toast.error("Add at least one file"); return; }
@@ -52,7 +54,8 @@ function UploadPage() {
     try {
       const files = await Promise.all(items.map(async (it) => {
         const changed = it.edits && it.edits.some((p, i) => !p.keep || p.rotate || p.src !== i);
-        return changed ? { file: await applyPageEdits(it.file, it.edits!), pages: it.pages } : { file: it.file, pages: it.pages };
+        const colorList = colourList(it);
+        return changed ? { file: await applyPageEdits(it.file, it.edits!), pages: it.pages, colorList } : { file: it.file, pages: it.pages, colorList };
       }));
       const r = await placeOrder({ mode: "document", files, o, layout: "standard", onProgress: setProgress });
       navigate({ to: "/track", search: { n: r.orderNumber, t: r.token } });
@@ -117,7 +120,7 @@ function UploadPage() {
                     </button>
                   </div>
                   {it.edits && it.editing && (
-                    <PdfPageEditor file={it.file} pages={it.edits} onChange={(e) => setItems((p) => p.map((x, i) => (i === idx ? { ...x, edits: e, pages: Math.max(1, e.filter((q) => q.keep).length) } : x)))} />
+                    <PdfPageEditor fallback={o.color_mode} file={it.file} pages={it.edits} onChange={(e) => setItems((p) => p.map((x, i) => (i === idx ? { ...x, edits: e, pages: Math.max(1, e.filter((q) => q.keep).length) } : x)))} />
                   )}
                   </li>
                 ))}
@@ -130,7 +133,7 @@ function UploadPage() {
             </div>
           </div>
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <PriceSummary settings={settings} o={o} pages={pages} submitting={busy} progress={progress} onSubmit={submit} disabled={!items.length || items.some((i) => i.counting)} />
+            <PriceSummary settings={settings} o={o} pages={pages} colorPages={colorPages} submitting={busy} progress={progress} onSubmit={submit} disabled={!items.length || items.some((i) => i.counting)} />
           </div>
         </div>
       </main>

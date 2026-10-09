@@ -104,6 +104,7 @@ const submitSchema = z.object({
         mime: z.string().max(120),
         size: z.number().int().positive(),
         pages: z.number().int().min(1).max(2000),
+        color_list: z.array(z.number().int().min(1).max(2000)).max(2000).optional(),
       }),
     )
     .min(1)
@@ -125,7 +126,10 @@ export const submitOrder = createServerFn({ method: "POST" })
     if (sErr || !settings) throw new Error("Shop settings unavailable");
 
     const pages = data.files.reduce((a, f) => a + f.pages, 0);
-    const price = calcPrice(settings, { pages, copies: data.copies, color_mode: data.color_mode, page_size: data.page_size, paper_type: data.paper_type, sides: data.sides });
+    const colourOf = (f: (typeof data.files)[number]) =>
+      f.color_list ? [...new Set(f.color_list.filter((n) => n <= f.pages))].sort((a, b) => a - b) : data.color_mode === "color" ? null : [];
+    const colorPages = data.mode === "document" ? data.files.reduce((a, f) => a + (colourOf(f)?.length ?? f.pages), 0) : undefined;
+    const price = calcPrice(settings, { pages, color_pages: colorPages, copies: data.copies, color_mode: data.color_mode, page_size: data.page_size, paper_type: data.paper_type, sides: data.sides });
     const token = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
 
     const { data: order, error } = await db
@@ -144,6 +148,7 @@ export const submitOrder = createServerFn({ method: "POST" })
         layout: data.layout || "standard",
         page_count: pages,
         estimated_price: price,
+        color_pages: colorPages ?? (data.color_mode === "color" ? pages : 0),
       })
       .select("id, order_number")
       .single();
@@ -153,7 +158,9 @@ export const submitOrder = createServerFn({ method: "POST" })
     for (const f of data.files) {
       const dest = `orders/${order.id}/${f.path.slice(prefix.length)}`;
       const { error: mvErr } = await db.storage.from(BUCKET).move(f.path, dest);
-      rows.push({ order_id: order.id, file_name: f.name, storage_path: mvErr ? f.path : dest, mime_type: f.mime, size_bytes: f.size, page_count: f.pages });
+      const cl = colourOf(f);
+      const list = cl === null ? (f.pages === 1 ? "1" : `1-${f.pages}`) : cl.join(", ");
+      rows.push({ color_pages: cl === null ? f.pages : cl.length, color_page_list: list, order_id: order.id, file_name: f.name, storage_path: mvErr ? f.path : dest, mime_type: f.mime, size_bytes: f.size, page_count: f.pages });
     }
     await db.from("order_files").insert(rows);
     runCleanupInternal().catch(() => {});
@@ -166,7 +173,7 @@ export const trackOrder = createServerFn({ method: "GET" })
     const db = await admin();
     const { data: o } = await db
       .from("orders")
-      .select("order_number, tracking_token, mode, customer_name, color_mode, copies, page_size, paper_type, sides, layout, page_count, estimated_price, status, reject_reason, created_at, updated_at, approved_at, completed_at, rejected_at, order_files(file_name, page_count, size_bytes)")
+      .select("order_number, tracking_token, mode, customer_name, color_mode, copies, page_size, paper_type, sides, layout, page_count, estimated_price, status, reject_reason, created_at, updated_at, approved_at, completed_at, rejected_at, color_pages, order_files(file_name, page_count, size_bytes, color_page_list), order_events(status, note, created_at)")
       .eq("order_number", data.orderNumber)
       .maybeSingle();
     if (!o || o.tracking_token !== data.token) return null;

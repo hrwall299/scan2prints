@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { z } from "zod";
-import { CheckCircle2, Clock, Printer, XCircle, Copy } from "lucide-react";
+import { CheckCircle2, Clock, Printer, XCircle, Copy, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { SiteFooter, SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ const STEPS = [
   { key: "printing", label: "Printing", icon: Printer },
   { key: "completed", label: "Ready", icon: CheckCircle2 },
 ];
+
+const LABELS: Record<string, string> = { pending: "Order received", approved: "Approved — in queue", printing: "Printing", completed: "Ready to collect", rejected: "Declined" };
 
 function TrackPage() {
   const { n, t } = Route.useSearch();
@@ -52,9 +54,9 @@ function TrackPage() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <SiteHeader />
+      <div className="print:hidden"><SiteHeader /></div>
       <main className="mx-auto max-w-2xl px-4 py-12">
-        <h1 className="font-display text-3xl font-bold">Track your order</h1>
+        <h1 className="font-display text-3xl font-bold print:hidden">Track your order</h1>
         {!valid && (
           <form onSubmit={lookup} className="mt-6 flex gap-2">
             <Input placeholder="Paste your tracking link" value={code} onChange={(e) => setCode(e.target.value)} />
@@ -65,7 +67,7 @@ function TrackPage() {
         {valid && !q.isLoading && !o && <p className="mt-6 text-destructive">Order not found. Check your tracking link.</p>}
         {o && (
           <div className="mt-6 space-y-6">
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-soft print:hidden">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Order</p>
@@ -94,18 +96,49 @@ function TrackPage() {
               )}
               {o.status === "completed" && <p className="mt-4 rounded-lg bg-success-soft p-3 text-center font-semibold text-success">Your prints are ready. Show order #{o.order_number} at the counter.</p>}
             </div>
-            <div className="rounded-2xl border border-border bg-card p-6 text-sm">
+            <div className="rounded-2xl border border-border bg-card p-6 text-sm print:hidden">
               <p><span className="text-muted-foreground">Options:</span> {o.color_mode === "bw" ? "B&W" : "Colour"} · {o.page_size} · {o.paper_type} · {o.sides}-sided · {o.copies} copies · {o.page_count} pages</p>
               {o.mode === "image" && <p className="mt-1"><span className="text-muted-foreground">Layout:</span> {o.layout}</p>}
               <ul className="mt-3 list-disc pl-5">{o.order_files?.map((f, i) => <li key={i}>{f.file_name}</li>)}</ul>
             </div>
+            <div className="rounded-2xl border border-border bg-card p-6 print:hidden">
+              <h2 className="font-display text-lg font-semibold">Order history</h2>
+              <ol className="mt-4 space-y-4 border-l-2 border-border pl-5">
+                {[...(o.order_events ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)).map((e, i) => (
+                  <li key={i} className="relative">
+                    <span className={`absolute -left-[27px] top-1 h-3 w-3 rounded-full ${e.status === "rejected" ? "bg-destructive" : "bg-primary"}`} />
+                    <p className="font-medium">{LABELS[e.status] ?? e.status}</p>
+                    <p className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString()}</p>
+                    {e.note && <p className="mt-1 text-sm">{e.note}</p>}
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <section className="hidden rounded-2xl border border-border bg-card p-6 text-sm print:block">
+              <h2 className="font-display text-2xl font-bold">{o.shop_name}</h2>
+              <p className="text-muted-foreground">Order receipt</p>
+              <div className="mt-4 flex justify-between"><span>Order</span><span className="font-bold">#{o.order_number}</span></div>
+              <div className="flex justify-between"><span>Customer</span><span>{o.customer_name}</span></div>
+              <div className="flex justify-between"><span>Placed</span><span>{new Date(o.created_at).toLocaleString()}</span></div>
+              <div className="flex justify-between"><span>Status</span><span>{LABELS[o.status] ?? o.status}</span></div>
+              <table className="mt-4 w-full text-left">
+                <thead><tr className="border-b border-border"><th className="py-1">File</th><th>Pages</th><th>Colour pages</th></tr></thead>
+                <tbody>{o.order_files?.map((f, i) => <tr key={i} className="border-b border-border"><td className="py-1">{f.file_name}</td><td>{f.page_count}</td><td>{f.color_page_list || "—"}</td></tr>)}</tbody>
+              </table>
+              <p className="mt-3">{o.copies} copies · {o.page_size} · {o.paper_type} · {o.sides}-sided · {o.page_count} pages ({o.color_pages} colour, {o.page_count - o.color_pages} B&W)</p>
+              <div className="mt-4 flex justify-between border-t border-border pt-3 text-lg font-bold"><span>Estimated total</span><span>{o.currency}{Number(o.estimated_price).toFixed(2)}</span></div>
+              <p className="mt-2 text-xs text-muted-foreground">Pay at the counter when you collect.</p>
+            </section>
+            <div className="flex flex-wrap gap-2 print:hidden">
+            <Button variant="outline" onClick={() => window.print()}><Receipt className="h-4 w-4" /> Print receipt</Button>
             <Button variant="outline" onClick={() => { navigator.clipboard.writeText(link); toast.success("Link copied — keep it to check later"); }}>
               <Copy className="h-4 w-4" /> Copy tracking link
             </Button>
+            </div>
           </div>
         )}
       </main>
-      <SiteFooter />
+      <div className="print:hidden"><SiteFooter /></div>
     </div>
   );
 }

@@ -198,7 +198,7 @@ function Overview({ orders, s }: { orders: Order[]; s: Settings }) {
 
 function OrderCard({ o, s, actions }: { o: Order; s: Settings; actions: React.ReactNode }) {
   const fetchFiles = useServerFn(getFileUrls);
-  const [files, setFiles] = useState<{ id: string; file_name: string; url: string | null; page_count: number }[] | null>(null);
+  const [files, setFiles] = useState<{ id: string; file_name: string; url: string | null; page_count: number; color_page_list: string }[] | null>(null);
   async function loadFiles() {
     try { setFiles(await fetchFiles({ data: { orderId: o.id } })); } catch { toast.error("Could not load files"); }
   }
@@ -221,7 +221,7 @@ function OrderCard({ o, s, actions }: { o: Order; s: Settings; actions: React.Re
       {o.reject_reason && <p className="mt-2 text-sm text-destructive">Rejected: {o.reject_reason}</p>}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {o.files_deleted_at ? <span className="text-xs text-muted-foreground">Files removed after cleanup</span> : files ? (
-          files.map((f) => f.url && <a key={f.id} href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-muted"><FileText className="h-3 w-3" />{f.file_name}</a>)
+          files.map((f) => f.url && <span key={f.id} className="inline-flex flex-col gap-0.5"><a href={f.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-muted"><FileText className="h-3 w-3" />{f.file_name}</a>{o.mode === "document" && <span className="text-[11px] text-muted-foreground">{f.color_page_list ? `Colour pages: ${f.color_page_list}` : "All pages B&W"}</span>}</span>)
         ) : <Button size="sm" variant="ghost" onClick={loadFiles}><FileText className="mr-1 h-4 w-4" />Show files</Button>}
         <div className="ml-auto flex gap-2">{actions}</div>
       </div>

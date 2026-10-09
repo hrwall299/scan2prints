@@ -10,7 +10,7 @@ export const getFileUrls = createServerFn({ method: "POST" })
     const { data: isAdmin } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
     if (!isAdmin) throw new Error("Forbidden");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: files } = await supabaseAdmin.from("order_files").select("id, file_name, storage_path, page_count, size_bytes").eq("order_id", data.orderId);
+    const { data: files } = await supabaseAdmin.from("order_files").select("id, file_name, storage_path, page_count, size_bytes, color_pages, color_page_list").eq("order_id", data.orderId);
     const out = [];
     for (const f of files ?? []) {
       const { data: s } = await supabaseAdmin.storage.from("print-files").createSignedUrl(f.storage_path, 3600);
