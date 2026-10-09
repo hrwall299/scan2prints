@@ -49,7 +49,7 @@ async function renderThumbs(file: File): Promise<string[]> {
   return urls;
 }
 
-export function PdfPageEditor({ file, pages, onChange }: { file: File; pages: PageEdit[]; onChange: (p: PageEdit[]) => void }) {
+export function PdfPageEditor({ file, pages, onChange, fallback = "bw" }: { file: File; pages: PageEdit[]; onChange: (p: PageEdit[]) => void; fallback?: "bw" | "color" }) {
   const [thumbs, setThumbs] = useState<string[] | null>(null);
   useEffect(() => {
     let live = true;
@@ -90,6 +90,17 @@ export function PdfPageEditor({ file, pages, onChange }: { file: File; pages: Pa
                 )}
               </div>
               <p className="mt-1 text-center text-xs text-muted-foreground">Sheet {i + 1} · original p.{p.src + 1}</p>
+              <div className="mt-1 grid grid-cols-2 gap-1 text-xs">
+                {(["bw", "color"] as const).map((c) => {
+                  const on = (p.color ?? fallback) === c;
+                  return (
+                    <button key={c} type="button" disabled={!p.keep} onClick={() => upd(i, { color: c })}
+                      className={`rounded-md border px-1 py-0.5 font-medium ${on ? "border-primary bg-primary-soft text-primary" : "border-border hover:border-primary/50"}`}>
+                      {c === "bw" ? "B&W" : "Colour"}
+                    </button>
+                  );
+                })}
+              </div>
               <div className="mt-1 flex justify-between">
                 <button type="button" aria-label="Move left" onClick={() => move(i, -1)} className="p-1 hover:text-primary"><ArrowLeft className="h-4 w-4" /></button>
                 <button type="button" aria-label="Rotate" onClick={() => upd(i, { rotate: (p.rotate + 90) % 360 })} className="p-1 hover:text-primary"><RotateCw className="h-4 w-4" /></button>
